@@ -1,0 +1,26 @@
+# 读入数据
+df <- read.table("str_gt.chr9.tsv", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+
+# 提取 CHROM + POS 作为行名
+rownames(df) <- paste0(df$V1, "_", df$V2)
+
+# 只保留样本列
+rep_cn_mat <- df[, -(1:2)]
+
+# 转换函数：将 "10,12" 变成 22
+rep_sum <- function(x) {
+  sapply(strsplit(x, ","), function(v) {
+    if (length(v) != 2 || any(v == ".")) return(NA)
+    sum(as.numeric(v))
+  })
+}
+
+# 应用函数
+dosage_matrix <- apply(rep_cn_mat, 2, rep_sum)
+
+# 加上行名
+rownames(dosage_matrix) <- rownames(df)
+
+# 保存结果
+write.table(dosage_matrix, file = "STR_dosage_matrix.chr9.tsv", sep = "\t", quote = FALSE)
+#which(dosage_matrix > 40, arr.ind = TRUE)
